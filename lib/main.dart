@@ -1,6 +1,14 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'firebase_options.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
@@ -29,37 +37,87 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  String name = '';
+  String room = '';
+
+  void showError(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(content: Text(message))
+    );
+
   }
+
+  void enter() {
+    if (name.isEmpty) {
+      showError('名前を入力してください');
+      return;
+    }
+    if (room.isEmpty) {
+      showError('ルーム名を入力してください');
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ChatPage(name: name, room: room)),
+    );
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        title: Text('Chat'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+      body: ListView(
+        children: [
+          ListTile(
+            title: TextField(
+              decoration: InputDecoration(hintText: '名前'),
+              onChanged: (value) {
+                name = value;
+              },
             ),
-          ],
-        ),
+          ),
+          ListTile(
+            title: TextField(
+              decoration: InputDecoration(hintText: 'ルーム名'),
+              onChanged: (value) {
+                room = value;
+              },
+            ),
+          ),
+          ListTile(
+            title: ElevatedButton(
+              onPressed: () { enter(); },
+              child: Text('入室'),
+            ),
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+    );
+  }
+}
+
+class ChatPage extends StatefulWidget {
+  ChatPage({required this.name, required this.room, super.key});
+  
+  final String name;
+  final String room;
+
+  @override
+  State<ChatPage> createState() => _ChatPageState();
+}
+
+class _ChatPageState extends State<ChatPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.room),
       ),
     );
   }
